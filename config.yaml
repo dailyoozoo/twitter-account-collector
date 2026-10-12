@@ -1,18 +1,23 @@
 # twitter-account-collector 配置文件
-# 说明：本文件驱动 scripts/collector.py 的真实运行逻辑（四层漏斗）。
+# 说明：本文件驱动 scripts/collector.py 的通用消息抓取逻辑（时间窗 → 去重 → 噪音过滤 → 汇总）。
 
-# 跟踪账号列表（handle 不含 @）
+# 跟踪账号列表（handle 不含 @，任意公开账号均可，不绑定领域）
 accounts:
-  - elonmusk
-  - VitalikButerin
+  - twitter
+  - BBCBreaking
+  - NASA
+  - TheVerge
 
-# 抓取与筛选参数
-request_delay: 2.5          # 每次请求之间的平滑间隔（秒），用于降低频控风险
-time_window_hours: 1        # 第一层：只采集该时间窗内发布的推文
-min_chars: 15               # 第三层：短于此字数的内容视为低信息噪音
-db_path: collector.db       # SQLite 去重库路径（自动创建）
+# ── 抓取深度参数 ──
+request_delay: 2.5            # 每次请求之间的平滑间隔（秒），降低频控风险
+time_window_hours: 1          # 时间深度：只采集该时间窗内发布的推文（1~72 可调）
+max_tweets_per_account: 20    # 条数深度：单次每账号最多处理条数，防止一次拉爆
+include_replies: false        # 是否包含回复（默认不含）
+include_retweets: false       # 是否包含转推（默认不含，转推按噪音过滤）
+min_chars: 15                 # 噪音阈值：短于此字数的内容视为低信息噪音
+db_path: collector.db         # SQLite 去重库路径（自动创建）
 
-# 第三层噪音关键词（命中且未命中价值词则过滤）
+# 噪音关键词（命中且属短内容则过滤；通用，可按需增删）
 noise_keywords:
   - gm
   - gn
@@ -23,24 +28,5 @@ noise_keywords:
   - 下午茶
   - 哈哈
   - lol
-  - 加油
-
-# 第三层价值关键词（命中则视为值得关注）
-value_keywords:
-  - 融资
-  - raise
-  - funding
-  - snapshot
-  - 快照
-  - 测试网
-  - mainnet
-  - 主网
-  - 漏洞
-  - exploit
-  - 女巫
-  - sybil
-  - 空投
-  - airdrop
-  - 合约
-  - 争议
-  - 辩论
+  - 打卡
+  - 转发微博

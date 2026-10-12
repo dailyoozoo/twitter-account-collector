@@ -22,7 +22,7 @@ This skill guides the agent in gathering recent posts from specified Twitter/X a
 
 本 skill 附带一套本地可运行的 Python 工具，把采集与筛选落成代码，避免只停留在提示词层面：
 
-- `scripts/collector.py` —— 四层漏斗实现（时间窗 → SQLite 去重 → 价值/噪音研判 → 发推决策 + 草稿），支持 `--demo` 离线验证。
+- `scripts/collector.py` —— 通用消息抓取实现（时间窗 → SQLite 去重 → 噪音过滤 → 汇总简报），支持 `--demo` 离线验证。
 - `config.yaml` —— 跟踪账号列表与筛选参数（request_delay / time_window_hours / min_chars / 噪音词 / 价值词）。
 - `scripts/sample_feed.json` —— 离线 demo 样本。
 
@@ -46,13 +46,13 @@ This skill guides the agent in gathering recent posts from specified Twitter/X a
    - 价值/噪音判定参考 `config.yaml` 的 `value_keywords` / `noise_keywords`（可随领域增删）。
 
 4. Produce Structured Output
-   - 套用 `references/template.md` 产出简报：目标账号、时间范围、分析条数、Top Highlights、资源索引、Key Takeaways。
-   - 若经四层漏斗判定为高价值，产出 ≤140 字发推草稿；否则明确「本周期无需发推」。
+   - 套用 `references/template.md` 产出简报：目标账号、时间范围、采集条数、保留消息列表（含时间、原文、链接）。
+   - 工具只负责"把消息抓干净并摆好"，不做任何发推或文案包装；哪些消息有价值由用户自行判断。
 
 ## Gotchas and Constraints
 
 - 免登录抓取是尽力而为、可插拔、有兜底：X 不公开频控数字，网传「单 IP 150~300 次/15 分钟」「2.5 秒间隔」均为经验估计，非官方保证；接口可能随时失效。
-- 自动发推需 X 官方 API（收费）；本工具只产出草稿与决策，不自动发布。
+- 本工具只做消息抓取与简报汇总，不含任何发推或文案包装能力；如需自动发布请另接 X 官方 API（收费）并遵守其开发者协议。
 - Rate Limits and Login Walls: Direct browsing may hit login prompts; fall back to search-based retrieval or RSS feeds when available.
 - Link Shorteners: Verify destination URLs before presenting them to avoid broken t.co links.
 - Thread Continuity: Ensure reply chains from the author are gathered as a single narrative rather than fragmented posts.
