@@ -1,40 +1,79 @@
 # Twitter Account Collector Skill
 
-An AI Agent Skill for tracking, collecting, and synthesizing intelligence, tools, and daily updates from Twitter (X) creators.
+An AI Agent skill + 本地可运行工具，用于采集、筛选并汇总来自 Twitter (X) 账号的更新与分享资源，产出结构化情报简报 / 发推草稿。
 
 ## 📖 Overview
 
-This repository contains the `twitter-account-collector` skill designed for AI Agents (such as Claude Code, Cursor, Codex, and other Agent frameworks supporting `SKILL.md`).
+本仓库包含两个层面：
 
-It provides a standardized workflow for:
-- Monitoring target accounts (e.g. AI news curators, tech founders, developers).
-- Parsing threads, media descriptions, and discussions.
-- Extracting clean URLs, GitHub repositories, and recommended tools.
-- Generating structured daily/weekly intelligence briefings.
+1. **Skill 层（SKILL.md）**：给 AI Agent（Claude Code / Cursor / Codex 等支持 `SKILL.md` 的框架）的提示词与工作流指引。
+2. **工具层（scripts/collector.py）**：一套**真实可运行**的 Python 实现，把"采集 → 四层筛选 → 去重 → 发推决策"落成代码，可离线验证、可接入定时任务。
+
+> ⚠️ 重要澄清：本仓库**不是**一套托管的自动化发推 SaaS，也不含任何"免登录保证可用"的抓取服务。抓取层是**尽力而为、可插拔、有兜底**的本地脚本，是否可用取决于你运行环境的网络与 X 当时的接口策略（详见下方「限制与真实边界」）。
 
 ## 📁 Repository Structure
 
 ```
-├── SKILL.md                 # Agent Skill definition & operational rules
-├── README.md                # Project documentation & GitHub guide
+├── SKILL.md                     # Agent Skill 定义与工作流
+├── README.md                    # 本文件
+├── config.yaml                  # 跟踪账号与筛选参数（驱动工具层）
+├── scripts/
+│   ├── collector.py             # 真实可运行的四层漏斗实现
+│   └── sample_feed.json         # 离线 demo 样本（验证漏斗用）
 └── references/
-    └── template.md          # Output briefing template format
+    └── template.md              # 情报简报输出模板
 ```
 
-## 🚀 Installation & Usage
+## 🚀 安装与使用
 
-### 1. In Claude Code / Cursor / Agent frameworks
-Copy this folder or download `SKILL.md` into your agent's skills directory:
+### 1. 作为 Agent Skill 使用
+把本目录放进 agent 的 skills 目录（如 `~/.claude/skills/twitter-account-collector/`），Agent 会按 SKILL.md 工作流执行。
+
+### 2. 直接运行工具层
 ```bash
-# Example for Claude Code:
-mkdir -p ~/.claude/skills/twitter-account-collector
-cp SKILL.md ~/.claude/skills/twitter-account-collector/
+pip install pyyaml            # 可选；无 pyyaml 时自动退回内置默认配置
+python scripts/collector.py                 # 按 config.yaml 联网抓取并筛选
+python scripts/collector.py --demo          # 离线跑样本，验证四层漏斗（无需网络）
+python scripts/collector.py --handle elonmusk --once
 ```
+- 结果会打印到终端，并写入 SQLite（`collector.db`）做去重。
+- 接定时任务示例（每小时一次）：`0 * * * * cd /path/to/skill && python scripts/collector.py`
 
-### 2. Prompting the Agent
-Once installed, simply prompt your agent:
-> "帮我收集 @Gorden_Sun 最近3天的推文，整理出一份AI工具日报"
-> "Summarize recent threads from @xiaomovps and extract all referenced tools and GitHub links."
+## 🧠 技术原理（真实实现）
+
+整体流水线：`config.yaml` → 抓取层（可插拔后端）→ **四层漏斗** → SQLite 去重 → 发推决策 + 草稿 → 简报。
+
+### 四层漏斗
+1. **第一层 · 时间窗（Time Filter，硬门槛）**
+   只保留 `created_at` 落在「当前时间前 N 小时」（默认 1 小时，可配）内的推文。
+   **为什么按时间而不是按"最新 N 条"**：按条数会在目标账号当天没发推时，把昨天的旧推当新动态重复抓出。本实现解析每条推文的 UTC 时间戳做判断。
+2. **第二层 · SQLite 去重（Deduplication）**
+   每条推文以唯一 `tweet_id` 入库比对；上一周期已处理过的（即使因时间边界重叠再次抓到）直接丢弃，保证不重复推送。
+3. **第三层 · 价值 / 噪音研判（Value vs. Noise）**
+   - 判定为**噪音**直接过滤：内容过短（`< min_chars`，默认 15 字）；命中日常打卡词（gm / 早安 / 聚会 / 下午茶 等）且未命中价值词。
+   - 判定为**值得关注**：命中价值词（融资 / snapshot / 测试网 / 主网 / 漏洞 / exploit / 女巫 / 空投 / 合约争议 等），或较长且有实质信息。
+4. **第四层 · 发推决策（Decision）**
+   - 本周期抓到高价值内容 → 「✅ 建议发推」，并产出 ≤140 字（软上限，CJK 按字符计）的定制草稿。
+   - 全是噪音 / 无新动态 → 「⏸ 本小时无需发推」，避免为发而发伤害算法权重。
+
+### 抓取层（尽力而为、可插拔、有兜底）
+`fetch_tweets()` 依次尝试多个后端，任一成功即采用：
+- **后端 A · fxtwitter 免登录接口**：返回该账号最新推文（最佳情况，但仅单条、易限流）。
+- **后端 B · Syndication 嵌入时间线**：尽力而为；X 经常变动/封锁该接口，失败时返回空并降级。
+- **兜底 · 文件投放**：可将抓到的 JSON 直接放入流程（适合接口全面不可用时手动/半自动接料）。
+
+请求之间按 `request_delay`（默认 2.5s）平滑间隔，降低触发频控的概率。
+
+## ⚠️ 限制与真实边界（必读）
+
+| 维度 | 真实情况 |
+|---|---|
+| **免登录抓取** | 技术上存在但**脆弱且处于 ToS 灰区**。X 不公开任何频控数字；网传"单 IP 150~300 次/15 分钟""2.5 秒间隔"均为**经验估计，非官方保证**。接口随时可能失效，本工具已做降级处理，但无法保证长期可用。 |
+| **账号数量上限** | 脚本本身**无硬上限**；实际能稳定跟踪多少，取决于接口稳定性、是否使用代理轮换、以及账号发推频率。运营上建议聚焦 **30~50 个高质量信源**（顶流 + 空投实操 + 安全/技术 + 快讯），避免信息过载与同质化。盲目堆到 200+ 需配多代理且风险升高。 |
+| **自动发推** | 本工具**只产出草稿与决策，不自动发布**。真实自动发推必须走 X 官方 API（现收费）并妥善管理令牌，请在遵守 X 开发者协议前提下自行接入。 |
+| **运行环境** | 需在**你本机/可联网环境**运行（如有代理请通过 `https_proxy` 环境变量传入）。沙箱、部分服务器、或受限网络可能直接抓不到数据——此时用 `--demo` 验证逻辑，抓取层按需替换后端。 |
+| **时间窗默认值** | 默认 1 小时，可在 `config.yaml` 调；去重库 `collector.db` 随运行累积，如需重置直接删除该文件。 |
+| **价值/噪音词表** | 内置词表为通用起点，请按你的领域（如 Web3 / AI / 安全）在 `config.yaml` 中增删，误判需自行校准。 |
 
 ## 📄 License
 MIT License
