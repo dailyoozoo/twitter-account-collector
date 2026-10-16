@@ -1,0 +1,24 @@
+{
+  "model_releases": [
+    "(GPT OR Claude OR Gemini OR Llama OR Grok OR Qwen OR DeepSeek OR Mistral) (release OR launch OR announce OR \"now available\") -is:retweet",
+    "(\"new model\" OR \"open weights\" OR \"open-source model\") AI -is:retweet"
+  ],
+  "products_and_agents": [
+    "(\"AI agent\" OR \"coding agent\" OR \"agent skills\" OR MCP) (launch OR ships OR introducing) -is:retweet",
+    "(Cursor OR \"Claude Code\" OR Codex OR Antigravity OR Devin) (launch OR update) -is:retweet"
+  ],
+  "industry_and_regulation": [
+    "AI (acquires OR acquisition OR \"raises\" OR bankruptcy OR \"Series A\" OR \"Series B\") -is:retweet",
+    "AI (regulation OR lawsuit OR ban OR \"executive order\" OR \"AI Act\") -is:retweet",
+    "AI (\"safety\" OR \"security\" OR vulnerability OR jailbreak OR leak) -is:retweet"
+  ],
+  "leaks_and_spotting": [
+    "(spotted OR leaked OR \"coming soon\") (GPT OR Claude OR Gemini) -is:retweet"
+  ],
+  "chinese_ecosystem": [
+    "(大模型 OR AI) (发布 OR 开源 OR 上线) lang:zh -is:retweet"
+  ],
+  "vertical_focus": [
+    "(\"text to speech\" OR TTS OR \"video editing\" OR \"speech to text\") AI (release OR open) -is:retweet"
+  ]
+}
