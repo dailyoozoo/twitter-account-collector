@@ -1,58 +1,108 @@
 ---
 name: twitter-account-collector
-description: Collect, monitor, and summarize updates and shared resources from Twitter (X) accounts. Use when tracking specific X creators, extracting daily AI digests, summarizing threads, or compiling links and tools from Twitter handles.
+description: Collect, monitor, and summarize updates, breaking AI developments, and shared resources from Twitter (X). Supports target creator tracking and automated keyword radar retrieval with semantic deduplication and value filtering.
 ---
 
-# Twitter Account Collector
+# Twitter Account & AI Intelligence Collector
 
-A structured skill for tracking, extracting, and synthesizing information from target Twitter (X) creators and accounts.
+A structured skill for dual-track tracking, high-value filtering, and intelligence synthesis on Twitter (X).
 
 ## Summary
 
-This skill guides the agent in gathering recent posts from specified Twitter/X accounts, extracting core technical points, external links, and recommended tools, and formatting them into high-value digests or structured briefings.
+This skill empowers the agent to conduct real-time intelligence collection on Twitter (X). It integrates targeted creator surveillance (AI labs, key founders, and tech reporters) with an automated boolean search radar to discover breaking AI model releases, agent frameworks, industry shifts, and technical resources within a defined time window (e.g. past 1 hour, past 24 hours). It enforces semantic topic deduplication, source verification, and strict value filtering to eliminate noise.
 
 ## When to Use
 
-- Tracking specific Twitter/X creators or thought leaders (e.g. AI researchers, developers, founders).
-- Compiling daily or weekly digests from target accounts.
-- Extracting GitHub repositories, articles, and product links mentioned in tweets.
-- Summarizing multi-tweet threads and discussions into coherent notes.
+- Tracking specific Twitter/X creators, AI research labs, or tech founders.
+- Conducting hourly or periodic AI intelligence sweeps on X.
+- Catching breaking model releases, open-weights drops, and agent skill announcements.
+- Filtering high-signal breaking news from secondary commentary, retweets, and promotional noise.
+- Extracting clean external links, GitHub repositories, and papers from posts.
+- Compiling concise intelligence briefings with direct primary sources.
 
-## Tooling (真实可运行实现)
+## Core Directives & Retrieval Tools
 
-本 skill 附带一套本地可运行的 Python 工具，把采集与筛选落成代码，避免只停留在提示词层面：
+Utilizes public-read X API capabilities (subject to frequency limits and max 25 posts per request):
+- `search_posts_all`: Global boolean keyword and batch-account search (supports `start_time`, `until_id`, `-is:retweet`, language filters).
+- `get_users_posts`: Chronological timeline retrieval for target profiles.
+- `get_news` / `search_news`: Trending topic discovery and official X editorial summaries.
+- `get_posts_counts_recent`: Sudden volume spike and sentiment acceleration detection.
 
-- `scripts/collector.py` —— 通用消息抓取实现（时间窗 → SQLite 去重 → 噪音过滤 → 汇总简报），支持 `--demo` 离线验证。
-- `config.yaml` —— 跟踪账号列表与筛选参数（request_delay / time_window_hours / min_chars / 噪音词 / 价值词）。
-- `scripts/sample_feed.json` —— 离线 demo 样本。
+---
 
-优先用工具跑出真实结果；纯 Agent 模式下若无工具运行环境，再按下面的工作流以检索/RSS 兜底手动完成。
+## Operational Workflow
 
-## Workflow Steps
+### Phase 1: Dual-Track Retrieval Strategy
 
-1. Clarify Target and Scope
-   - Identify the target handle (e.g. `@Gorden_Sun`, `@xiaomovps`).
-   - Define the time window (e.g. latest 24 hours, past 3 days, or specific topic).
-   - Determine the output goal: brief summary, resource list, or deep-dive thread breakdown.
+#### Track 1: Targeted Creator & Lab Surveillance (Batched & Tiered)
+To avoid rate limits from polling 30+ accounts individually, group handles into batched `from:` queries in `search_posts_all` (e.g., `(from:OpenAI OR from:AnthropicAI OR from:GoogleDeepMind OR from:xai) -is:retweet`):
+- **Tier 1 (Official Labs & Research Teams)**:
+  - OpenAI: `@OpenAI`, `@OpenAIDevs`, `@OpenAINewsroom`, `@ChatGPTapp`
+  - Anthropic: `@AnthropicAI`, `@claudeai`
+  - Google: `@GoogleDeepMind`, `@GoogleAI`, `@GeminiApp`, `@googleaidevs`
+  - Meta & xAI: `@AIatMeta`, `@xai`
+  - Open Source & Ecosystem: `@MistralAI`, `@deepseek_ai`, `@Alibaba_Qwen`, `@huggingface`, `@nvidia`, `@cursor_ai`, `@perplexity_ai`, `@LangChainAI`
+- **Tier 2 (Key Pioneers & Executives)**:
+  - OpenAI: `@sama`, `@gdb`
+  - Anthropic: `@DarioAmodei`, `@jackclarkSF`
+  - Google: `@sundarpichai`, `@demishassabis`, `@OfficialLoganK`, `@JeffDean`
+  - Industry: `@elonmusk`, `@karpathy`, `@AndrewYNg`, `@ylecun`
+- **Tier 3 (News Curators & Tech Reporters)**:
+  - `@TheInformation`, `@theverge`, `@TechCrunch`, `@Reuters`, `@testingcatalog`, `@btibor91`, `@rowancheung`, `@swyx`, `@simonw`
 
-2. Retrieve and Parse Account Data
-   - 首选运行 `scripts/collector.py`（按 `config.yaml` 的账号与参数自动采集）。
-   - 无运行环境时，访问目标 profile 的最近推文、回复与置顶推文；长推文线程按时间顺序展开以保持完整上下文。
-   - 抓取媒体描述、视频转写（如有）与被引用的 quote 推文。
+#### Track 2: Global Boolean Keyword Radar
+Run queries with `-is:retweet` and strict `start_time` (e.g., past 1 hour) across categorized topics:
+- **Model Releases**:
+  - `(GPT OR Claude OR Gemini OR Llama OR Grok OR Qwen OR DeepSeek OR Mistral) (release OR launch OR announce OR "now available") -is:retweet`
+  - `("new model" OR "open weights" OR "open-source model") AI -is:retweet`
+- **Products & Agents**:
+  - `("AI agent" OR "coding agent" OR "agent skills" OR MCP) (launch OR ships OR introducing) -is:retweet`
+  - `(Cursor OR "Claude Code" OR Codex OR Antigravity OR Devin) (launch OR update) -is:retweet`
+- **Industry & Regulatory Milestones**:
+  - `AI (acquires OR acquisition OR "raises" OR bankruptcy OR "Series A" OR "Series B") -is:retweet`
+  - `AI (regulation OR lawsuit OR ban OR "executive order" OR "AI Act") -is:retweet`
+  - `AI ("safety" OR "security" OR vulnerability OR jailbreak OR leak) -is:retweet`
+- **Leaks & Early Intel**:
+  - `(spotted OR leaked OR "coming soon") (GPT OR Claude OR Gemini) -is:retweet`
+- **Chinese AI Ecosystem**:
+  - `(大模型 OR AI) (发布 OR 开源 OR 上线) lang:zh -is:retweet`
+- **User-Specific Verticals (Adjustable)**:
+  - `("text to speech" OR TTS OR "video editing" OR "speech to text") AI (release OR open) -is:retweet`
 
-3. Extract and Verify Key Intelligence
-   - 按主题归类：产品发布、提示词技巧、代码仓库、教程。
-   - 提取原始外链（展开短链），过滤噪音、纯自推与重复转推。
-   - 价值/噪音判定参考 `config.yaml` 的 `value_keywords` / `noise_keywords`（可随领域增删）。
+#### Track 3: External Cross-Verification
+- Check trending X topics against Hacker News frontpage, TechCrunch, The Verge, Reuters, and official company engineering blogs.
+- If an X post shares a screenshot or summary of external news, penetrate the secondary post and locate the canonical primary URL (GitHub repo, research paper, blog post).
 
-4. Produce Structured Output
-   - 套用 `references/template.md` 产出简报：目标账号、时间范围、采集条数、保留消息列表（含时间、原文、链接）。
-   - 工具只负责"把消息抓干净并摆好"，不做任何发推或文案包装；哪些消息有价值由用户自行判断。
+---
 
-## Gotchas and Constraints
+### Phase 2: Deduplication & Watermark Tracking
 
-- 免登录抓取是尽力而为、可插拔、有兜底：X 不公开频控数字，网传「单 IP 150~300 次/15 分钟」「2.5 秒间隔」均为经验估计，非官方保证；接口可能随时失效。
-- 本工具只做消息抓取与简报汇总，不含任何发推或文案包装能力；如需自动发布请另接 X 官方 API（收费）并遵守其开发者协议。
-- Rate Limits and Login Walls: Direct browsing may hit login prompts; fall back to search-based retrieval or RSS feeds when available.
-- Link Shorteners: Verify destination URLs before presenting them to avoid broken t.co links.
-- Thread Continuity: Ensure reply chains from the author are gathered as a single narrative rather than fragmented posts.
+1. **Semantic Topic Fingerprinting**:
+   - Maintain a 7-day rolling seen store (`references/seen_store.json`).
+   - Group by `[Entity] + [Action] + [Key Version/Parameter]` (e.g. `[Claude Code] + [Release] + [v1.0]`).
+   - If multiple accounts post about the identical announcement, cluster them and keep only the earliest or highest-engagement primary tweet.
+   - Discard rewrites, quote tweets, and secondary reports unless a material new milestone occurs (e.g., rumor officially confirmed).
+2. **Snowflake ID Watermark**:
+   - Record the latest tweet `max_id` from each retrieval cycle to set `since_id` on the subsequent request, avoiding time-window boundary gaps.
+
+---
+
+### Phase 3: Value Judgment Matrix
+
+| Category | Decision | Criteria |
+| :--- | :--- | :--- |
+| **Breaking Releases** | 💡 **Push** | SOTA foundation model release, general availability (GA), major open-weights drop. |
+| **Major Business Shifts** | 💡 **Push** | Significant funding rounds (Series A+), strategic acquisitions, prominent leadership shake-ups. |
+| **Governance & Security** | 💡 **Push** | Major regulatory rulings, landmark lawsuits, confirmed zero-day exploits, model weights leak. |
+| **Tool & Agent Innovations** | 💡 **Push** | Novel agent architectures, MCP implementations, developer tooling with working code. |
+| **Routine Chatter / Noise** | ☕ **Skip** | Minor patch bumps, unconfirmed rumors without proof, pure personal opinions, reposted memes. |
+
+---
+
+### Phase 4: Output Delivery Format
+
+- **Header / Time Window**: e.g., `【过去 1 小时 AI 核心热点快报】`
+- **Item Format**:
+  - **[Bold Headline]**: Concise 1-2 sentence breakdown of what occurred and its broader industry significance.
+  - 🔗 **Direct Sources**: Canonical primary source (official announcement / blog / GitHub) + original X discussion link.
+- **Quiet Mode**: If no high-signal event meets the push threshold during the monitored window, output a concise single-line confirmation (or silence) to avoid message fatigue.
