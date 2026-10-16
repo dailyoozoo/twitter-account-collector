@@ -1,0 +1,127 @@
+{
+  "tier_1_labs": [
+    {
+      "name": "OpenAI",
+      "handles": [
+        "OpenAI",
+        "OpenAIDevs",
+        "OpenAINewsroom",
+        "ChatGPTapp"
+      ]
+    },
+    {
+      "name": "Anthropic",
+      "handles": [
+        "AnthropicAI",
+        "claudeai"
+      ]
+    },
+    {
+      "name": "Google",
+      "handles": [
+        "GoogleDeepMind",
+        "GoogleAI",
+        "GeminiApp",
+        "googleaidevs"
+      ]
+    },
+    {
+      "name": "Meta",
+      "handles": [
+        "AIatMeta"
+      ]
+    },
+    {
+      "name": "xAI",
+      "handles": [
+        "xai"
+      ]
+    },
+    {
+      "name": "Ecosystem & Open Source",
+      "handles": [
+        "MistralAI",
+        "deepseek_ai",
+        "Alibaba_Qwen",
+        "huggingface",
+        "nvidia",
+        "cursor_ai",
+        "perplexity_ai",
+        "LangChainAI"
+      ]
+    }
+  ],
+  "tier_2_leaders": [
+    {
+      "name": "Sam Altman",
+      "handle": "sama",
+      "org": "OpenAI"
+    },
+    {
+      "name": "Greg Brockman",
+      "handle": "gdb",
+      "org": "OpenAI"
+    },
+    {
+      "name": "Dario Amodei",
+      "handle": "DarioAmodei",
+      "org": "Anthropic"
+    },
+    {
+      "name": "Jack Clark",
+      "handle": "jackclarkSF",
+      "org": "Anthropic"
+    },
+    {
+      "name": "Sundar Pichai",
+      "handle": "sundarpichai",
+      "org": "Google"
+    },
+    {
+      "name": "Demis Hassabis",
+      "handle": "demishassabis",
+      "org": "Google DeepMind"
+    },
+    {
+      "name": "Logan Kilpatrick",
+      "handle": "OfficialLoganK",
+      "org": "Google"
+    },
+    {
+      "name": "Jeff Dean",
+      "handle": "JeffDean",
+      "org": "Google"
+    },
+    {
+      "name": "Elon Musk",
+      "handle": "elonmusk",
+      "org": "xAI"
+    },
+    {
+      "name": "Andrej Karpathy",
+      "handle": "karpathy",
+      "org": "Independent"
+    },
+    {
+      "name": "Andrew Ng",
+      "handle": "AndrewYNg",
+      "org": "DeepLearning.AI"
+    },
+    {
+      "name": "Yann LeCun",
+      "handle": "ylecun",
+      "org": "Meta"
+    }
+  ],
+  "tier_3_news_and_curators": [
+    "TheInformation",
+    "theverge",
+    "TechCrunch",
+    "Reuters",
+    "testingcatalog",
+    "btibor91",
+    "rowancheung",
+    "swyx",
+    "simonw"
+  ]
+}
