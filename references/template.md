@@ -1,27 +1,30 @@
-# Twitter Account Intelligence Briefing Template
+# X AI Intelligence Briefing Template
 
-## 👤 Target Profile
-- **Account**: [@handle]
-- **Time Range**: YYYY-MM-DD to YYYY-MM-DD
-- **Total Posts Analyzed**: [N]
-
----
-
-## 🌟 Top Highlights
-1. **[Headline 1]**: Brief summary of major announcement or insight.
-2. **[Headline 2]**: Brief summary.
+## 📡 监控时段与范围
+- **监控周期**：YYYY-MM-DD HH:MM ~ HH:MM
+- **采集模式**：双轨雷达（核心账号定点监控 + 布尔关键词全网检索）
+- **核验状态**：已完成 7 天历史指纹比对与跨平台交叉核验
 
 ---
 
-## 🛠️ Extracted Tools & Repositories
+## 🚀 核心情报动态
 
-| Name | Type | Description | Link |
+### 1. **[加粗事件标题]**
+* **核心内容**：1~2 句话说明事件核心事实、发布内容或技术突破。
+* **价值解读**：为什么重要，对开发者、行业竞争格局或散户投资者的潜在影响。
+* **信源直链**：
+  * 🌐 官方首发 / 原文：[URL]
+  * 💬 X 讨论原帖：[URL]
+
+---
+
+## 🛠️ 本期提取工具与开源资源
+
+| 项目 / 工具名称 | 类别 | 核心功能简介 | 链接 |
 | :--- | :--- | :--- | :--- |
-| Tool A | AI Model / CLI | Brief description | [URL] |
-| Repo B | GitHub Project | Brief description | [URL] |
+| **[Tool Name]** | Model / Agent / Repo | 一句话功能描述 | [GitHub / Official Link] |
 
 ---
 
-## 💡 Key Takeaways & Community Sentiment
-- Core takeaway 1
-- Core takeaway 2
+## ☕ 降噪与过滤说明
+- **过滤噪音**：已自动剔除 N 条常规讨论、同质化搬运、小版本更新与未证实谣言。
